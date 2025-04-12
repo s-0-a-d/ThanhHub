@@ -1,1 +1,1 @@
-game.Players.LocalPlayer:Kick("Thanh Hub nói: Thanh Hub Blade Ball đang trong lập trình")
+game.Players.LocalPlayer:Kick("Thanh Hub nói: Thanh Hub Blade Ball đã chuyển script sang loadstring(game:HttpGet('https://scriptdeadrails.thanhhub.workers.dev'))()")
