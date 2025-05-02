@@ -1,19 +1,122 @@
--- MainScript.lua
-local MyGUILib = loadstring(game:HttpGet("https://yourserver.com/MyGUILib.lua"))() -- Thay bằng đường dẫn thực tế nếu lưu online
+-- MyGUILib.lua
+local MyGUILib = {}
+MyGUILib.__index = MyGUILib
 
--- Tạo cửa sổ
-local window = MyGUILib:CreateWindow("My Custom GUI")
+-- Tạo một ScreenGui để chứa giao diện
+local function createScreenGui()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    screenGui.Name = "MyGUILib"
+    screenGui.ResetOnSpawn = false
+    return screenGui
+end
+
+-- Tạo cửa sổ chính
+function MyGUILib:CreateWindow(title)
+    local window = {}
+    window.ScreenGui = createScreenGui()
+    window.Frame = Instance.new("Frame")
+    window.Frame.Size = UDim2.new(0, 300, 0, 400)
+    window.Frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+    window.Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    window.Frame.BorderSizePixel = 0
+    window.Frame.Active = true
+    window.Frame.Draggable = true
+    window.Frame.Parent = window.ScreenGui
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, 0, 0, 30)
+    titleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Font = Enum.Font.SourceSansBold
+    titleLabel.TextSize = 16
+    titleLabel.Parent = window.Frame
+
+    window.Tabs = {}
+    window.CurrentTab = nil
+
+    setmetatable(window, {
+        __index = function(t, k)
+            return MyGUILib[k] or window[k]
+        end
+    })
+
+    return window
+end
 
 -- Tạo tab
-local combatTab = MyGUILib:NewTab(window, "Combat")
-local visualTab = MyGUILib:NewTab(window, "Visual")
+function MyGUILib:NewTab(window, tabName)
+    local tabButton = Instance.new("TextButton")
+    tabButton.Size = UDim2.new(0, 100, 0, 30)
+    tabButton.Position = UDim2.new(0, (#window.Tabs * 100), 0, 30)
+    tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    tabButton.Text = tabName
+    tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tabButton.Font = Enum.Font.SourceSans
+    tabButton.Parent = window.Frame
 
--- Thêm toggle vào Combat Tab
-MyGUILib:NewToggle(combatTab, "Silent Aim", function(state)
-    print("Silent Aim:", state and "ON" or "OFF")
-end)
+    local tabContent = Instance.new("Frame")
+    tabContent.Size = UDim2.new(1, -10, 1, -70)
+    tabContent.Position = UDim2.new(0, 5, 0, 65)
+    tabContent.BackgroundTransparency = 1
+    tabContent.Visible = false
+    tabContent.Parent = window.Frame
 
--- Thêm button vào Visual Tab
-MyGUILib:NewButton(visualTab, "Show FOV", function()
-    print("FOV displayed!")
-end)
+    local newTab = {Button = tabButton, Content = tabContent, Elements = {}}
+    table.insert(window.Tabs, newTab)
+
+    tabButton.MouseButton1Click:Connect(function()
+        for _, tab in pairs(window.Tabs) do
+            tab.Content.Visible = false
+        end
+        tabContent.Visible = true
+        window.CurrentTab = newTab
+    end)
+
+    if #window.Tabs == 1 then
+        tabContent.Visible = true
+        window.CurrentTab = newTab
+    end
+
+    return newTab
+end
+
+-- Tạo toggle
+function MyGUILib:NewToggle(tab, text, callback)
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 200, 0, 30)
+    toggle.Position = UDim2.new(0, 5, 0, (#tab.Elements * 35) + 5)
+    toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    toggle.Text = text .. " [OFF]"
+    toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggle.Font = Enum.Font.SourceSans
+    toggle.Parent = tab.Content
+
+    local state = false
+    table.insert(tab.Elements, toggle)
+
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        toggle.Text = text .. " [" .. (state and "ON" or "OFF") .. "]"
+        callback(state)
+    end)
+end
+
+-- Tạo button
+function MyGUILib:NewButton(tab, text, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 200, 0, 30)
+    button.Position = UDim2.new(0, 5, 0, (#tab.Elements * 35) + 5)
+    button.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.SourceSans
+    button.Parent = tab.Content
+
+    table.insert(tab.Elements, button)
+
+    button.MouseButton1Click:Connect(callback)
+end
+
+return MyGUILib
