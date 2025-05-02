@@ -1,0 +1,19 @@
+-- MainScript.lua
+local MyGUILib = loadstring(game:HttpGet("https://yourserver.com/MyGUILib.lua"))() -- Thay bằng đường dẫn thực tế nếu lưu online
+
+-- Tạo cửa sổ
+local window = MyGUILib:CreateWindow("My Custom GUI")
+
+-- Tạo tab
+local combatTab = MyGUILib:NewTab(window, "Combat")
+local visualTab = MyGUILib:NewTab(window, "Visual")
+
+-- Thêm toggle vào Combat Tab
+MyGUILib:NewToggle(combatTab, "Silent Aim", function(state)
+    print("Silent Aim:", state and "ON" or "OFF")
+end)
+
+-- Thêm button vào Visual Tab
+MyGUILib:NewButton(visualTab, "Show FOV", function()
+    print("FOV displayed!")
+end)
