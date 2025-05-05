@@ -1,122 +1,186 @@
--- MyGUILib.lua
-local MyGUILib = {}
-MyGUILib.__index = MyGUILib
+-- GuiLibrary.lua
+local GuiLibrary = {}
 
--- Tạo một ScreenGui để chứa giao diện
-local function createScreenGui()
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    screenGui.Name = "MyGUILib"
-    screenGui.ResetOnSpawn = false
-    return screenGui
-end
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
--- Tạo cửa sổ chính
-function MyGUILib:CreateWindow(title)
-    local window = {}
-    window.ScreenGui = createScreenGui()
-    window.Frame = Instance.new("Frame")
-    window.Frame.Size = UDim2.new(0, 300, 0, 400)
-    window.Frame.Position = UDim2.new(0.5, -150, 0.5, -200)
-    window.Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    window.Frame.BorderSizePixel = 0
-    window.Frame.Active = true
-    window.Frame.Draggable = true
-    window.Frame.Parent = window.ScreenGui
+function GuiLibrary:CreateWindow(title)
+    local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+    ScreenGui.Name = "GuiLibrary"
 
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0, 30)
-    titleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    titleLabel.Text = title
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLabel.Font = Enum.Font.SourceSansBold
-    titleLabel.TextSize = 16
-    titleLabel.Parent = window.Frame
+    local Main = Instance.new("Frame", ScreenGui)
+    Main.Size = UDim2.new(0, 500, 0, 350)
+    Main.Position = UDim2.new(0.5, -250, 0.5, -175)
+    Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Main.Active = true
+    Main.Draggable = true
+    Main.BorderSizePixel = 0
 
-    window.Tabs = {}
-    window.CurrentTab = nil
+    local Title = Instance.new("TextLabel", Main)
+    Title.Size = UDim2.new(1, 0, 0, 30)
+    Title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    Title.Text = title or "Gui Library"
+    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.Font = Enum.Font.SourceSansBold
+    Title.TextSize = 20
+    Title.BorderSizePixel = 0
 
-    setmetatable(window, {
-        __index = function(t, k)
-            return MyGUILib[k] or window[k]
-        end
-    })
+    local TabButtons = Instance.new("Frame", Main)
+    TabButtons.Size = UDim2.new(0, 120, 1, -30)
+    TabButtons.Position = UDim2.new(0, 0, 0, 30)
+    TabButtons.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 
-    return window
-end
+    local ContentFrame = Instance.new("Frame", Main)
+    ContentFrame.Size = UDim2.new(1, -120, 1, -30)
+    ContentFrame.Position = UDim2.new(0, 120, 0, 30)
+    ContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    ContentFrame.ClipsDescendants = true
 
--- Tạo tab
-function MyGUILib:NewTab(window, tabName)
-    local tabButton = Instance.new("TextButton")
-    tabButton.Size = UDim2.new(0, 100, 0, 30)
-    tabButton.Position = UDim2.new(0, (#window.Tabs * 100), 0, 30)
-    tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    tabButton.Text = tabName
-    tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    tabButton.Font = Enum.Font.SourceSans
-    tabButton.Parent = window.Frame
+    local UIPageLayout = Instance.new("UIPageLayout", ContentFrame)
+    UIPageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    UIPageLayout.EasingDirection = Enum.EasingDirection.InOut
+    UIPageLayout.EasingStyle = Enum.EasingStyle.Quad
+    UIPageLayout.TweenTime = 0.3
 
-    local tabContent = Instance.new("Frame")
-    tabContent.Size = UDim2.new(1, -10, 1, -70)
-    tabContent.Position = UDim2.new(0, 5, 0, 65)
-    tabContent.BackgroundTransparency = 1
-    tabContent.Visible = false
-    tabContent.Parent = window.Frame
+    local function CreateTab(name)
+        local Button = Instance.new("TextButton", TabButtons)
+        Button.Size = UDim2.new(1, 0, 0, 30)
+        Button.Text = name
+        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        Button.TextColor3 = Color3.new(1, 1, 1)
+        Button.Font = Enum.Font.SourceSans
+        Button.TextSize = 16
 
-    local newTab = {Button = tabButton, Content = tabContent, Elements = {}}
-    table.insert(window.Tabs, newTab)
+        local Page = Instance.new("Frame")
+        Page.Name = name
+        Page.Size = UDim2.new(1, 0, 1, 0)
+        Page.BackgroundTransparency = 1
+        Page.LayoutOrder = #ContentFrame:GetChildren()
 
-    tabButton.MouseButton1Click:Connect(function()
-        for _, tab in pairs(window.Tabs) do
-            tab.Content.Visible = false
-        end
-        tabContent.Visible = true
-        window.CurrentTab = newTab
-    end)
+        local UIList = Instance.new("UIListLayout", Page)
+        UIList.Padding = UDim.new(0, 6)
 
-    if #window.Tabs == 1 then
-        tabContent.Visible = true
-        window.CurrentTab = newTab
+        Button.MouseButton1Click:Connect(function()
+            UIPageLayout:JumpTo(Page)
+        end)
+
+        Page.Parent = ContentFrame
+
+        return {
+            AddButton = function(_, text, callback)
+                local Btn = Instance.new("TextButton", Page)
+                Btn.Size = UDim2.new(0, 200, 0, 30)
+                Btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                Btn.Text = text
+                Btn.TextColor3 = Color3.new(1, 1, 1)
+                Btn.Font = Enum.Font.SourceSans
+                Btn.TextSize = 16
+                Btn.MouseButton1Click:Connect(callback)
+            end,
+
+            AddToggle = function(_, text, default, callback)
+                local Toggle = Instance.new("TextButton", Page)
+                Toggle.Size = UDim2.new(0, 200, 0, 30)
+                Toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                Toggle.TextColor3 = Color3.new(1, 1, 1)
+                Toggle.Font = Enum.Font.SourceSans
+                Toggle.TextSize = 16
+
+                local state = default or false
+                Toggle.Text = text .. ": " .. (state and "ON" or "OFF")
+
+                Toggle.MouseButton1Click:Connect(function()
+                    state = not state
+                    Toggle.Text = text .. ": " .. (state and "ON" or "OFF")
+                    callback(state)
+                end)
+            end,
+
+            AddSlider = function(_, text, min, max, default, callback)
+                local Frame = Instance.new("Frame", Page)
+                Frame.Size = UDim2.new(0, 200, 0, 40)
+                Frame.BackgroundTransparency = 1
+
+                local Label = Instance.new("TextLabel", Frame)
+                Label.Size = UDim2.new(1, 0, 0, 20)
+                Label.Text = text .. ": " .. tostring(default)
+                Label.TextColor3 = Color3.new(1, 1, 1)
+                Label.BackgroundTransparency = 1
+                Label.Font = Enum.Font.SourceSans
+                Label.TextSize = 16
+
+                local Slider = Instance.new("TextButton", Frame)
+                Slider.Position = UDim2.new(0, 0, 0, 20)
+                Slider.Size = UDim2.new(1, 0, 0, 20)
+                Slider.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+                Slider.Text = ""
+
+                local Fill = Instance.new("Frame", Slider)
+                Fill.BackgroundColor3 = Color3.fromRGB(120, 120, 255)
+                Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+                Fill.BorderSizePixel = 0
+
+                Slider.MouseButton1Down:Connect(function()
+                    local conn
+                    conn = game:GetService("RunService").RenderStepped:Connect(function()
+                        local mouse = LocalPlayer:GetMouse()
+                        local percent = math.clamp((mouse.X - Slider.AbsolutePosition.X) / Slider.AbsoluteSize.X, 0, 1)
+                        Fill.Size = UDim2.new(percent, 0, 1, 0)
+                        local value = math.floor(min + (max - min) * percent)
+                        Label.Text = text .. ": " .. tostring(value)
+                        callback(value)
+                    end)
+                    game:GetService("UserInputService").InputEnded:Wait()
+                    conn:Disconnect()
+                end)
+            end,
+
+            AddDropdown = function(_, text, options, callback)
+                local Dropdown = Instance.new("TextButton", Page)
+                Dropdown.Size = UDim2.new(0, 200, 0, 30)
+                Dropdown.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                Dropdown.TextColor3 = Color3.new(1, 1, 1)
+                Dropdown.Font = Enum.Font.SourceSans
+                Dropdown.TextSize = 16
+
+                local selected = options[1]
+                Dropdown.Text = text .. ": " .. selected
+
+                local Open = false
+
+                Dropdown.MouseButton1Click:Connect(function()
+                    if Open then return end
+                    Open = true
+
+                    for _, v in ipairs(options) do
+                        local Opt = Instance.new("TextButton", Page)
+                        Opt.Size = UDim2.new(0, 200, 0, 25)
+                        Opt.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                        Opt.Text = v
+                        Opt.TextColor3 = Color3.new(1, 1, 1)
+                        Opt.Font = Enum.Font.SourceSans
+                        Opt.TextSize = 14
+                        Opt.MouseButton1Click:Connect(function()
+                            selected = v
+                            Dropdown.Text = text .. ": " .. selected
+                            callback(selected)
+                            for _, child in ipairs(Page:GetChildren()) do
+                                if child:IsA("TextButton") and child ~= Dropdown then
+                                    child:Destroy()
+                                end
+                            end
+                            Open = false
+                        end)
+                    end
+                end)
+            end
+        }
     end
 
-    return newTab
+    return {
+        CreateTab = CreateTab
+    }
 end
 
--- Tạo toggle
-function MyGUILib:NewToggle(tab, text, callback)
-    local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(0, 200, 0, 30)
-    toggle.Position = UDim2.new(0, 5, 0, (#tab.Elements * 35) + 5)
-    toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    toggle.Text = text .. " [OFF]"
-    toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggle.Font = Enum.Font.SourceSans
-    toggle.Parent = tab.Content
-
-    local state = false
-    table.insert(tab.Elements, toggle)
-
-    toggle.MouseButton1Click:Connect(function()
-        state = not state
-        toggle.Text = text .. " [" .. (state and "ON" or "OFF") .. "]"
-        callback(state)
-    end)
-end
-
--- Tạo button
-function MyGUILib:NewButton(tab, text, callback)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 200, 0, 30)
-    button.Position = UDim2.new(0, 5, 0, (#tab.Elements * 35) + 5)
-    button.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-    button.Text = text
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.SourceSans
-    button.Parent = tab.Content
-
-    table.insert(tab.Elements, button)
-
-    button.MouseButton1Click:Connect(callback)
-end
-
-return MyGUILibhttps://raw.githubusercontent.com/s-0-a-d/ThanhHub/refs/heads/main/Library 
+return GuiLibrary
