@@ -1,186 +1,120 @@
 -- GuiLibrary.lua
 local GuiLibrary = {}
-
-local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-function GuiLibrary:CreateWindow(title)
-    local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-    ScreenGui.Name = "GuiLibrary"
+local function createUICorner(radius)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, radius)
+	return corner
+end
 
-    local Main = Instance.new("Frame", ScreenGui)
-    Main.Size = UDim2.new(0, 500, 0, 350)
-    Main.Position = UDim2.new(0.5, -250, 0.5, -175)
-    Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    Main.Active = true
-    Main.Draggable = true
-    Main.BorderSizePixel = 0
+function GuiLibrary:CreateWindow(titleText)
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "OverdriveGUI"
+	gui.ResetOnSpawn = false
+	gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-    local Title = Instance.new("TextLabel", Main)
-    Title.Size = UDim2.new(1, 0, 0, 30)
-    Title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    Title.Text = title or "Gui Library"
-    Title.TextColor3 = Color3.new(1, 1, 1)
-    Title.Font = Enum.Font.SourceSansBold
-    Title.TextSize = 20
-    Title.BorderSizePixel = 0
+	local main = Instance.new("Frame", gui)
+	main.Size = UDim2.new(0, 600, 0, 350)
+	main.Position = UDim2.new(0.5, -300, 0.5, -175)
+	main.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+	main.BackgroundTransparency = 0.4
+	main.BorderSizePixel = 0
+	main.Active = true
+	main.Draggable = true
 
-    local TabButtons = Instance.new("Frame", Main)
-    TabButtons.Size = UDim2.new(0, 120, 1, -30)
-    TabButtons.Position = UDim2.new(0, 0, 0, 30)
-    TabButtons.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	createUICorner(12).Parent = main
 
-    local ContentFrame = Instance.new("Frame", Main)
-    ContentFrame.Size = UDim2.new(1, -120, 1, -30)
-    ContentFrame.Position = UDim2.new(0, 120, 0, 30)
-    ContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    ContentFrame.ClipsDescendants = true
+	local titleBar = Instance.new("Frame", main)
+	titleBar.Size = UDim2.new(1, 0, 0, 35)
+	titleBar.BackgroundColor3 = Color3.fromRGB(0, 0, 180)
+	titleBar.BackgroundTransparency = 0.1
+	titleBar.BorderSizePixel = 0
+	createUICorner(12).Parent = titleBar
 
-    local UIPageLayout = Instance.new("UIPageLayout", ContentFrame)
-    UIPageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    UIPageLayout.EasingDirection = Enum.EasingDirection.InOut
-    UIPageLayout.EasingStyle = Enum.EasingStyle.Quad
-    UIPageLayout.TweenTime = 0.3
+	local title = Instance.new("TextLabel", titleBar)
+	title.Size = UDim2.new(1, -10, 1, 0)
+	title.Position = UDim2.new(0, 5, 0, 0)
+	title.BackgroundTransparency = 1
+	title.Text = titleText
+	title.TextColor3 = Color3.new(1, 1, 1)
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Font = Enum.Font.SourceSansBold
+	title.TextSize = 20
+	title.RichText = true
 
-    local function CreateTab(name)
-        local Button = Instance.new("TextButton", TabButtons)
-        Button.Size = UDim2.new(1, 0, 0, 30)
-        Button.Text = name
-        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        Button.TextColor3 = Color3.new(1, 1, 1)
-        Button.Font = Enum.Font.SourceSans
-        Button.TextSize = 16
+	local tabPanel = Instance.new("Frame", main)
+	tabPanel.Size = UDim2.new(0, 120, 1, -35)
+	tabPanel.Position = UDim2.new(0, 0, 0, 35)
+	tabPanel.BackgroundTransparency = 1
 
-        local Page = Instance.new("Frame")
-        Page.Name = name
-        Page.Size = UDim2.new(1, 0, 1, 0)
-        Page.BackgroundTransparency = 1
-        Page.LayoutOrder = #ContentFrame:GetChildren()
+	local contentPanel = Instance.new("Frame", main)
+	contentPanel.Size = UDim2.new(1, -130, 1, -35)
+	contentPanel.Position = UDim2.new(0, 130, 0, 35)
+	contentPanel.BackgroundTransparency = 1
 
-        local UIList = Instance.new("UIListLayout", Page)
-        UIList.Padding = UDim.new(0, 6)
+	local tabs = {}
 
-        Button.MouseButton1Click:Connect(function()
-            UIPageLayout:JumpTo(Page)
-        end)
+	local function deselectAll()
+		for _, tab in ipairs(tabs) do
+			if tab.Content then
+				tab.Content.Visible = false
+			end
+		end
+	end
 
-        Page.Parent = ContentFrame
+	local window = {}
 
-        return {
-            AddButton = function(_, text, callback)
-                local Btn = Instance.new("TextButton", Page)
-                Btn.Size = UDim2.new(0, 200, 0, 30)
-                Btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-                Btn.Text = text
-                Btn.TextColor3 = Color3.new(1, 1, 1)
-                Btn.Font = Enum.Font.SourceSans
-                Btn.TextSize = 16
-                Btn.MouseButton1Click:Connect(callback)
-            end,
+	function window:CreateTab(name)
+		local btn = Instance.new("TextButton", tabPanel)
+		btn.Size = UDim2.new(1, -10, 0, 35)
+		btn.Position = UDim2.new(0, 5, 0, (#tabs) * 40)
+		btn.Text = name
+		btn.BackgroundColor3 = Color3.fromRGB(10, 10, 100)
+		btn.TextColor3 = Color3.new(1, 1, 1)
+		btn.Font = Enum.Font.SourceSansBold
+		btn.TextSize = 18
+		createUICorner(8).Parent = btn
 
-            AddToggle = function(_, text, default, callback)
-                local Toggle = Instance.new("TextButton", Page)
-                Toggle.Size = UDim2.new(0, 200, 0, 30)
-                Toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-                Toggle.TextColor3 = Color3.new(1, 1, 1)
-                Toggle.Font = Enum.Font.SourceSans
-                Toggle.TextSize = 16
+		local tabContent = Instance.new("Frame", contentPanel)
+		tabContent.Size = UDim2.new(1, 0, 1, 0)
+		tabContent.Visible = #tabs == 0
+		tabContent.BackgroundTransparency = 1
 
-                local state = default or false
-                Toggle.Text = text .. ": " .. (state and "ON" or "OFF")
+		local tab = {}
+		tab.Content = tabContent
 
-                Toggle.MouseButton1Click:Connect(function()
-                    state = not state
-                    Toggle.Text = text .. ": " .. (state and "ON" or "OFF")
-                    callback(state)
-                end)
-            end,
+		function tab:AddButton(text, callback)
+			local btn = Instance.new("TextButton", tabContent)
+			btn.Size = UDim2.new(0, 150, 0, 30)
+			btn.Position = UDim2.new(0, 10, 0, (#tabContent:GetChildren()-1) * 40 + 10)
+			btn.Text = text
+			btn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+			btn.TextColor3 = Color3.new(1, 1, 1)
+			btn.Font = Enum.Font.SourceSans
+			btn.TextSize = 18
+			createUICorner(6).Parent = btn
 
-            AddSlider = function(_, text, min, max, default, callback)
-                local Frame = Instance.new("Frame", Page)
-                Frame.Size = UDim2.new(0, 200, 0, 40)
-                Frame.BackgroundTransparency = 1
+			btn.MouseButton1Click:Connect(callback)
+		end
 
-                local Label = Instance.new("TextLabel", Frame)
-                Label.Size = UDim2.new(1, 0, 0, 20)
-                Label.Text = text .. ": " .. tostring(default)
-                Label.TextColor3 = Color3.new(1, 1, 1)
-                Label.BackgroundTransparency = 1
-                Label.Font = Enum.Font.SourceSans
-                Label.TextSize = 16
+		btn.MouseButton1Click:Connect(function()
+			deselectAll()
+			tabContent.Visible = true
+		end)
 
-                local Slider = Instance.new("TextButton", Frame)
-                Slider.Position = UDim2.new(0, 0, 0, 20)
-                Slider.Size = UDim2.new(1, 0, 0, 20)
-                Slider.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-                Slider.Text = ""
+		table.insert(tabs, tab)
+		return tab
+	end
 
-                local Fill = Instance.new("Frame", Slider)
-                Fill.BackgroundColor3 = Color3.fromRGB(120, 120, 255)
-                Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-                Fill.BorderSizePixel = 0
-
-                Slider.MouseButton1Down:Connect(function()
-                    local conn
-                    conn = game:GetService("RunService").RenderStepped:Connect(function()
-                        local mouse = LocalPlayer:GetMouse()
-                        local percent = math.clamp((mouse.X - Slider.AbsolutePosition.X) / Slider.AbsoluteSize.X, 0, 1)
-                        Fill.Size = UDim2.new(percent, 0, 1, 0)
-                        local value = math.floor(min + (max - min) * percent)
-                        Label.Text = text .. ": " .. tostring(value)
-                        callback(value)
-                    end)
-                    game:GetService("UserInputService").InputEnded:Wait()
-                    conn:Disconnect()
-                end)
-            end,
-
-            AddDropdown = function(_, text, options, callback)
-                local Dropdown = Instance.new("TextButton", Page)
-                Dropdown.Size = UDim2.new(0, 200, 0, 30)
-                Dropdown.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-                Dropdown.TextColor3 = Color3.new(1, 1, 1)
-                Dropdown.Font = Enum.Font.SourceSans
-                Dropdown.TextSize = 16
-
-                local selected = options[1]
-                Dropdown.Text = text .. ": " .. selected
-
-                local Open = false
-
-                Dropdown.MouseButton1Click:Connect(function()
-                    if Open then return end
-                    Open = true
-
-                    for _, v in ipairs(options) do
-                        local Opt = Instance.new("TextButton", Page)
-                        Opt.Size = UDim2.new(0, 200, 0, 25)
-                        Opt.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-                        Opt.Text = v
-                        Opt.TextColor3 = Color3.new(1, 1, 1)
-                        Opt.Font = Enum.Font.SourceSans
-                        Opt.TextSize = 14
-                        Opt.MouseButton1Click:Connect(function()
-                            selected = v
-                            Dropdown.Text = text .. ": " .. selected
-                            callback(selected)
-                            for _, child in ipairs(Page:GetChildren()) do
-                                if child:IsA("TextButton") and child ~= Dropdown then
-                                    child:Destroy()
-                                end
-                            end
-                            Open = false
-                        end)
-                    end
-                end)
-            end
-        }
-    end
-
-    return {
-        CreateTab = CreateTab
-    }
+	return window
 end
 
 return GuiLibrary
+
+local window = GuiLib:CreateWindow("Overdrive H | ver <font color='rgb(0,255,0)'>2.0c</font> | <font color='rgb(0,200,255)'>Murder Mystery 2</font>")
+local tab = window:CreateTab("Combat")
+tab:AddButton("Shoot Murderer", function()
+	print("Shoot Murderer Clicked!")
+end)
