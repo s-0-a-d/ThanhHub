@@ -13,6 +13,7 @@ local function tweenProperty(object, property, value, duration)
     local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local tween = TweenService:Create(object, tweenInfo, {[property] = value})
     tween:Play()
+    return tween
 end
 
 local clickSound = Instance.new("Sound")
@@ -50,7 +51,7 @@ local function createNotification(notificationContainer, message, duration)
     notification.Position = UDim2.new(1, 0, 0, 0)
     tweenProperty(notification, "Position", UDim2.new(0, 0, 0, 0), 0.3)
 
-    spawn(function()
+    task.spawn(function()
         wait(duration)
         tweenProperty(notification, "Position", UDim2.new(1, 0, 0, 0), 0.3)
         wait(0.3)
@@ -78,7 +79,7 @@ function GuiLib:CreateWindow(titleText)
     notificationList.Parent = notificationContainer
 
     local main = Instance.new("Frame")
-    main.Size = UDim2.new(0, 400, 0, 250) -- Kích thước nhỏ hơn như trong ảnh
+    main.Size = UDim2.new(0, 400, 0, 250)
     main.Position = UDim2.new(0.5, -200, 0.5, -125)
     main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     main.BackgroundTransparency = 0
@@ -108,7 +109,7 @@ function GuiLib:CreateWindow(titleText)
     cornerTitle.Parent = titleBar
 
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(0.8, 0, 1, 0)
+    title.Size = UDim2.new(0.7, 0, 1, 0)
     title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1
     title.Text = titleText
@@ -132,6 +133,20 @@ function GuiLib:CreateWindow(titleText)
     cornerClose.CornerRadius = UDim.new(0, 8)
     cornerClose.Parent = closeButton
 
+    local minimizeButton = Instance.new("TextButton")
+    minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+    minimizeButton.Position = UDim2.new(1, -80, 0, 5)
+    minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+    minimizeButton.Text = "-"
+    minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minimizeButton.Font = Enum.Font.Gotham
+    minimizeButton.TextSize = 14
+    minimizeButton.Parent = titleBar
+
+    local cornerMinimize = Instance.new("UICorner")
+    cornerMinimize.CornerRadius = UDim.new(0, 8)
+    cornerMinimize.Parent = minimizeButton
+
     local tabPanel = Instance.new("Frame")
     tabPanel.Size = UDim2.new(1, 0, 0, 40)
     tabPanel.Position = UDim2.new(0, 0, 0, 40)
@@ -154,17 +169,13 @@ function GuiLib:CreateWindow(titleText)
     contentPanel.ClipsDescendants = true
     contentPanel.Parent = main
 
-    local contentList = Instance.new("UIListLayout")
-    contentList.Padding = UDim.new(0, 5)
-    contentList.Parent = contentPanel
-
     local tabs = {}
     local activeTab = nil
 
     function window:CreateTab(name)
         local tab = {}
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0, 100, 1, 0) -- Kích thước tab ngang
+        btn.Size = UDim2.new(0, 100, 1, 0)
         btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         btn.Text = name
         btn.TextColor3 = Color3.fromRGB(150, 150, 150)
@@ -184,10 +195,18 @@ function GuiLib:CreateWindow(titleText)
         indicator.Parent = btn
 
         local content = Instance.new("Frame")
-        content.Size = UDim2.new(1, 0, 0, 0)
+        content.Size = UDim2.new(1, 0, 1, 0)
         content.BackgroundTransparency = 1
         content.Visible = false
         content.Parent = contentPanel
+
+        local contentList = Instance.new("UIListLayout")
+        contentList.Padding = UDim.new(0, 5)
+        contentList.Parent = content
+
+        contentList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            contentPanel.CanvasSize = UDim2.new(0, 0, 0, contentList.AbsoluteContentSize.Y)
+        end)
 
         tabs[name] = {button = btn, content = content, indicator = indicator}
 
@@ -211,6 +230,7 @@ function GuiLib:CreateWindow(titleText)
                 tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(50, 50, 50), 0.2)
             end
         end)
+
         btn.MouseLeave:Connect(function()
             if tabs[name] ~= activeTab then
                 tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(40, 40, 40), 0.2)
@@ -299,8 +319,6 @@ function GuiLib:CreateWindow(titleText)
                 callback(state)
                 clickSound:Play()
             end)
-
-            return toggleFrame
         end
 
         function tab:CreateSlider(options)
@@ -376,7 +394,7 @@ function GuiLib:CreateWindow(titleText)
         function tab:CreateDropdown(options)
             local text = options.Name
             local items = options.Options or {}
-            local default = options.CurrentValue or items[1]
+            local default = options.CurrentValue or (items[1] or "None")
             local callback = options.Callback or function() end
 
             local dropdownFrame = Instance.new("Frame")
@@ -584,4 +602,4 @@ function GuiLib:CreateWindow(titleText)
     return window
 end
 
-return GuiLib -- Kết thúc module tại đây
+return GuiLib
