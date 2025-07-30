@@ -13,7 +13,6 @@ local function tweenProperty(object, property, value, duration)
     local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local tween = TweenService:Create(object, tweenInfo, {[property] = value})
     tween:Play()
-    return tween
 end
 
 local clickSound = Instance.new("Sound")
@@ -51,7 +50,7 @@ local function createNotification(notificationContainer, message, duration)
     notification.Position = UDim2.new(1, 0, 0, 0)
     tweenProperty(notification, "Position", UDim2.new(0, 0, 0, 0), 0.3)
 
-    task.spawn(function()
+    spawn(function()
         wait(duration)
         tweenProperty(notification, "Position", UDim2.new(1, 0, 0, 0), 0.3)
         wait(0.3)
@@ -79,10 +78,10 @@ function GuiLib:CreateWindow(titleText)
     notificationList.Parent = notificationContainer
 
     local main = Instance.new("Frame")
-    main.Size = UDim2.new(0, 400, 0, 250)
-    main.Position = UDim2.new(0.5, -200, 0.5, -125)
-    main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    main.BackgroundTransparency = 0
+    main.Size = UDim2.new(0, 500, 0, 300)
+    main.Position = UDim2.new(0.5, -250, 1, 150)
+    main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    main.BackgroundTransparency = 0.1
     main.BorderSizePixel = 0
     main.Active = true
     main.Draggable = true
@@ -90,33 +89,46 @@ function GuiLib:CreateWindow(titleText)
     main.Parent = gui
 
     local cornerMain = Instance.new("UICorner")
-    cornerMain.CornerRadius = UDim.new(0, 15)
+    cornerMain.CornerRadius = UDim.new(0, 12)
     cornerMain.Parent = main
 
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)), ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))}
-    gradient.Parent = main
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(50, 50, 50)
+    stroke.Thickness = 1
+    stroke.Parent = main
+
+    local shadow = Instance.new("ImageLabel")
+    shadow.Size = UDim2.new(1, 20, 1, 20)
+    shadow.Position = UDim2.new(0, -10, 0, -10)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://1316045217"
+    shadow.ImageTransparency = 0.5
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    shadow.Parent = main
 
     local titleBar = Instance.new("Frame")
     titleBar.Size = UDim2.new(1, 0, 0, 40)
     titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    titleBar.BackgroundTransparency = 0
+    titleBar.BackgroundTransparency = 0.1
     titleBar.BorderSizePixel = 0
     titleBar.Parent = main
 
     local cornerTitle = Instance.new("UICorner")
-    cornerTitle.CornerRadius = UDim.new(0, 15)
+    cornerTitle.CornerRadius = UDim.new(0, 12)
     cornerTitle.Parent = titleBar
 
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(0.7, 0, 1, 0)
-    title.Position = UDim2.new(0, 10, 0, 0)
+    title.Position = UDim2.new(0, 15, 0, 0)
     title.BackgroundTransparency = 1
     title.Text = titleText
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextColor3 = Color3.fromRGB(220, 220, 220)
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Font = Enum.Font.GothamBold
     title.TextSize = 16
+    title.RichText = true
     title.Parent = titleBar
 
     local closeButton = Instance.new("TextButton")
@@ -130,7 +142,7 @@ function GuiLib:CreateWindow(titleText)
     closeButton.Parent = titleBar
 
     local cornerClose = Instance.new("UICorner")
-    cornerClose.CornerRadius = UDim.new(0, 8)
+    cornerClose.CornerRadius = UDim.new(0, 6)
     cornerClose.Parent = closeButton
 
     local minimizeButton = Instance.new("TextButton")
@@ -144,24 +156,26 @@ function GuiLib:CreateWindow(titleText)
     minimizeButton.Parent = titleBar
 
     local cornerMinimize = Instance.new("UICorner")
-    cornerMinimize.CornerRadius = UDim.new(0, 8)
+    cornerMinimize.CornerRadius = UDim.new(0, 6)
     cornerMinimize.Parent = minimizeButton
 
-    local tabPanel = Instance.new("Frame")
-    tabPanel.Size = UDim2.new(1, 0, 0, 40)
+    local tabPanel = Instance.new("ScrollingFrame")
+    tabPanel.Size = UDim2.new(0, 150, 1, -40)
     tabPanel.Position = UDim2.new(0, 0, 0, 40)
     tabPanel.BackgroundTransparency = 1
+    tabPanel.ScrollBarThickness = 4
+    tabPanel.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    tabPanel.CanvasSize = UDim2.new(0, 0, 0, 0)
+    tabPanel.ClipsDescendants = true
     tabPanel.Parent = main
 
     local tabList = Instance.new("UIListLayout")
-    tabList.FillDirection = Enum.FillDirection.Horizontal
-    tabList.HorizontalAlignment = Enum.HorizontalAlignment.Center
     tabList.Padding = UDim.new(0, 5)
     tabList.Parent = tabPanel
 
     local contentPanel = Instance.new("ScrollingFrame")
-    contentPanel.Size = UDim2.new(1, 0, 1, -80)
-    contentPanel.Position = UDim2.new(0, 0, 0, 80)
+    contentPanel.Size = UDim2.new(1, -150, 1, -40)
+    contentPanel.Position = UDim2.new(0, 150, 0, 40)
     contentPanel.BackgroundTransparency = 1
     contentPanel.ScrollBarThickness = 4
     contentPanel.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
@@ -175,27 +189,28 @@ function GuiLib:CreateWindow(titleText)
     function window:CreateTab(name)
         local tab = {}
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0, 100, 1, 0)
+        btn.Size = UDim2.new(1, -10, 0, 40)
+        btn.Position = UDim2.new(0, 5, 0, 0)
         btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         btn.Text = name
         btn.TextColor3 = Color3.fromRGB(150, 150, 150)
         btn.Font = Enum.Font.Gotham
-        btn.TextSize = 14
+        btn.TextSize = 16
         btn.Parent = tabPanel
 
         local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 10)
+        corner.CornerRadius = UDim.new(0, 8)
         corner.Parent = btn
 
         local indicator = Instance.new("Frame")
-        indicator.Size = UDim2.new(0, 4, 0.8, 0)
-        indicator.Position = UDim2.new(0, 2, 0, 4)
+        indicator.Size = UDim2.new(0, 4, 1, 0)
+        indicator.Position = UDim2.new(0, 0, 0, 0)
         indicator.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
         indicator.Visible = false
         indicator.Parent = btn
 
         local content = Instance.new("Frame")
-        content.Size = UDim2.new(1, 0, 1, 0)
+        content.Size = UDim2.new(1, 0, 0, 0)
         content.BackgroundTransparency = 1
         content.Visible = false
         content.Parent = contentPanel
@@ -203,12 +218,23 @@ function GuiLib:CreateWindow(titleText)
         local contentList = Instance.new("UIListLayout")
         contentList.Padding = UDim.new(0, 5)
         contentList.Parent = content
-
         contentList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            contentPanel.CanvasSize = UDim2.new(0, 0, 0, contentList.AbsoluteContentSize.Y)
+            content.Size = UDim2.new(1, 0, 0, contentList.AbsoluteContentSize.Y)
+            contentPanel.CanvasSize = UDim2.new(0, 0, 0, math.max(contentList.AbsoluteContentSize.Y, contentPanel.AbsoluteSize.Y))
         end)
 
         tabs[name] = {button = btn, content = content, indicator = indicator}
+
+        btn.MouseEnter:Connect(function()
+            if tabs[name] ~= activeTab then
+                tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(50, 50, 50), 0.2)
+            end
+        end)
+        btn.MouseLeave:Connect(function()
+            if tabs[name] ~= activeTab then
+                tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(40, 40, 40), 0.2)
+            end
+        end)
 
         btn.MouseButton1Click:Connect(function()
             if activeTab then
@@ -225,18 +251,6 @@ function GuiLib:CreateWindow(titleText)
             clickSound:Play()
         end)
 
-        btn.MouseEnter:Connect(function()
-            if tabs[name] ~= activeTab then
-                tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(50, 50, 50), 0.2)
-            end
-        end)
-
-        btn.MouseLeave:Connect(function()
-            if tabs[name] ~= activeTab then
-                tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(40, 40, 40), 0.2)
-            end
-        end)
-
         function tab:CreateButton(options)
             local text = options.Name
             local callback = options.Callback or function() end
@@ -244,22 +258,22 @@ function GuiLib:CreateWindow(titleText)
             local btn = Instance.new("TextButton")
             btn.Size = UDim2.new(1, -20, 0, 40)
             btn.Position = UDim2.new(0, 10, 0, 0)
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 200)
+            btn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
             btn.Text = text
             btn.TextColor3 = Color3.fromRGB(255, 255, 255)
             btn.Font = Enum.Font.Gotham
-            btn.TextSize = 14
+            btn.TextSize = 16
             btn.Parent = content
 
             local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0, 10)
+            corner.CornerRadius = UDim.new(0, 8)
             corner.Parent = btn
 
             btn.MouseEnter:Connect(function()
-                tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(70, 70, 220), 0.2)
+                tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(255, 80, 80), 0.2)
             end)
             btn.MouseLeave:Connect(function()
-                tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(50, 50, 200), 0.2)
+                tweenProperty(btn, "BackgroundColor3", Color3.fromRGB(255, 50, 50), 0.2)
             end)
 
             btn.MouseButton1Click:Connect(function()
@@ -275,46 +289,35 @@ function GuiLib:CreateWindow(titleText)
             local callback = options.Callback or function() end
 
             local toggleFrame = Instance.new("Frame")
-            toggleFrame.Size = UDim2.new(1, -20, 0, 30)
+            toggleFrame.Size = UDim2.new(1, -20, 0, 40)
             toggleFrame.BackgroundTransparency = 1
             toggleFrame.Parent = content
 
             local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(0.7, 0, 1, 0)
+            label.Size = UDim2.new(0.8, 0, 1, 0)
             label.BackgroundTransparency = 1
             label.Text = text
             label.TextColor3 = Color3.fromRGB(200, 200, 200)
             label.Font = Enum.Font.Gotham
-            label.TextSize = 14
+            label.TextSize = 16
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.Parent = toggleFrame
 
-            local toggleBase = Instance.new("Frame")
-            toggleBase.Size = UDim2.new(0, 50, 0, 20)
-            toggleBase.Position = UDim2.new(1, -60, 0.5, -10)
-            toggleBase.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-            toggleBase.Parent = toggleFrame
+            local toggle = Instance.new("TextButton")
+            toggle.Size = UDim2.new(0, 40, 0, 20)
+            toggle.Position = UDim2.new(1, -40, 0.5, -10)
+            toggle.BackgroundColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(100, 100, 100)
+            toggle.Text = ""
+            toggle.Parent = toggleFrame
 
-            local cornerBase = Instance.new("UICorner")
-            cornerBase.CornerRadius = UDim.new(0, 10)
-            cornerBase.Parent = toggleBase
-
-            local toggleButton = Instance.new("TextButton")
-            toggleButton.Size = UDim2.new(0.5, 0, 1, 0)
-            toggleButton.Position = default and UDim2.new(0.5, 0, 0, 0) or UDim2.new(0, 0, 0, 0)
-            toggleButton.BackgroundColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 50, 50)
-            toggleButton.Text = ""
-            toggleButton.Parent = toggleBase
-
-            local cornerButton = Instance.new("UICorner")
-            cornerButton.CornerRadius = UDim.new(0, 10)
-            cornerButton.Parent = toggleButton
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0, 10)
+            corner.Parent = toggle
 
             local state = default
-            toggleButton.MouseButton1Click:Connect(function()
+            toggle.MouseButton1Click:Connect(function()
                 state = not state
-                tweenProperty(toggleButton, "Position", state and UDim2.new(0.5, 0, 0, 0) or UDim2.new(0, 0, 0, 0), 0.2)
-                tweenProperty(toggleButton, "BackgroundColor3", state and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 50, 50), 0.2)
+                tweenProperty(toggle, "BackgroundColor3", state and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(100, 100, 100), 0.2)
                 createNotification(notificationContainer, text .. (state and " enabled!" or " disabled!"), 3)
                 callback(state)
                 clickSound:Play()
@@ -329,7 +332,7 @@ function GuiLib:CreateWindow(titleText)
             local callback = options.Callback or function() end
 
             local sliderFrame = Instance.new("Frame")
-            sliderFrame.Size = UDim2.new(1, -20, 0, 50)
+            sliderFrame.Size = UDim2.new(1, -20, 0, 60)
             sliderFrame.BackgroundTransparency = 1
             sliderFrame.Parent = content
 
@@ -339,13 +342,13 @@ function GuiLib:CreateWindow(titleText)
             label.Text = text .. ": " .. default
             label.TextColor3 = Color3.fromRGB(200, 200, 200)
             label.Font = Enum.Font.Gotham
-            label.TextSize = 14
+            label.TextSize = 16
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.Parent = sliderFrame
 
             local slider = Instance.new("Frame")
             slider.Size = UDim2.new(1, 0, 0, 10)
-            slider.Position = UDim2.new(0, 0, 0, 25)
+            slider.Position = UDim2.new(0, 0, 0, 30)
             slider.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
             slider.Parent = sliderFrame
 
@@ -394,7 +397,7 @@ function GuiLib:CreateWindow(titleText)
         function tab:CreateDropdown(options)
             local text = options.Name
             local items = options.Options or {}
-            local default = options.CurrentValue or (items[1] or "None")
+            local default = options.CurrentValue or items[1]
             local callback = options.Callback or function() end
 
             local dropdownFrame = Instance.new("Frame")
@@ -408,7 +411,7 @@ function GuiLib:CreateWindow(titleText)
             label.Text = text .. ": " .. default
             label.TextColor3 = Color3.fromRGB(200, 200, 200)
             label.Font = Enum.Font.Gotham
-            label.TextSize = 14
+            label.TextSize = 16
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.Parent = dropdownFrame
 
@@ -489,7 +492,7 @@ function GuiLib:CreateWindow(titleText)
             label.Text = text .. ": " .. default.Name
             label.TextColor3 = Color3.fromRGB(200, 200, 200)
             label.Font = Enum.Font.Gotham
-            label.TextSize = 14
+            label.TextSize = 16
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.Parent = keybindFrame
 
@@ -533,7 +536,7 @@ function GuiLib:CreateWindow(titleText)
     end
 
     closeButton.MouseButton1Click:Connect(function()
-        tweenProperty(main, "Position", UDim2.new(0.5, -200, 1, 150), 0.5)
+        tweenProperty(main, "Position", UDim2.new(0.5, -250, 1, 150), 0.5)
         wait(0.5)
         gui.Enabled = false
         clickSound:Play()
@@ -543,12 +546,12 @@ function GuiLib:CreateWindow(titleText)
     minimizeButton.MouseButton1Click:Connect(function()
         minimized = not minimized
         if minimized then
-            tweenProperty(main, "Size", UDim2.new(0, 400, 0, 40), 0.3)
+            tweenProperty(main, "Size", UDim2.new(0, 500, 0, 40), 0.3)
             contentPanel.Visible = false
             tabPanel.Visible = false
             minimizeButton.Text = "+"
         else
-            tweenProperty(main, "Size", UDim2.new(0, 400, 0, 250), 0.3)
+            tweenProperty(main, "Size", UDim2.new(0, 500, 0, 300), 0.3)
             contentPanel.Visible = true
             tabPanel.Visible = true
             minimizeButton.Text = "-"
@@ -561,9 +564,9 @@ function GuiLib:CreateWindow(titleText)
         if not gameProcessed and input.KeyCode == toggleKey then
             gui.Enabled = not gui.Enabled
             if gui.Enabled then
-                tweenProperty(main, "Position", UDim2.new(0.5, -200, 0.5, -125), 0.5)
+                tweenProperty(main, "Position", UDim2.new(0.5, -250, 0.5, -150), 0.5)
             else
-                tweenProperty(main, "Position", UDim2.new(0.5, -200, 1, 150), 0.5)
+                tweenProperty(main, "Position", UDim2.new(0.5, -250, 1, 150), 0.5)
             end
             clickSound:Play()
         end
@@ -596,10 +599,10 @@ function GuiLib:CreateWindow(titleText)
         end
     end)
 
-    tweenProperty(main, "Position", UDim2.new(0.5, -200, 0.5, -125), 0.5)
+    tweenProperty(main, "Position", UDim2.new(0.5, -250, 0.5, -150), 0.5)
     createNotification(notificationContainer, "Welcome to Overdrive H v2.0c!", 5)
 
     return window
 end
 
-return GuiLib
+return GuiLib -- Kết thúc module tại đây
